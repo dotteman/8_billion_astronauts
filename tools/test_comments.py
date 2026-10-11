@@ -99,6 +99,7 @@ def post():
         print(f"posted  {term}")
         time.sleep(1)  # stay well under GitHub's content-creation rate limit
     print(f"\n{commented} test comments posted, {made} new threads created.")
+    print(f"::notice title=post::{commented} test comments posted, {made} new threads created")
 
 
 def verify():
@@ -124,8 +125,10 @@ def verify():
         print(f"{'PASS' if ok else 'FAIL'}  {term}  ({note})")
         if not ok:
             failed.append(term)
+            print(f"::error title=Thread not found by giscus::{term} ({note})")
     total = sum(1 for _ in threads())
     print(f"\n{total - len(failed)}/{total} threads passed.")
+    print(f"::notice title=verify::{total - len(failed)}/{total} threads passed")
     if failed:
         sys.exit(1)
 
@@ -149,6 +152,7 @@ def cleanup():
                 removed_c += 1
                 print(f"deleted comment {d['title']}")
     print(f"\n{removed_c} test comments removed, {removed_d} test-only threads deleted.")
+    print(f"::notice title=cleanup::{removed_c} test comments removed, {removed_d} test-only threads deleted")
 
 
 if __name__ == "__main__":
@@ -157,4 +161,10 @@ if __name__ == "__main__":
         sys.exit(__doc__)
     if mode != "verify" and not TOKEN:
         sys.exit("Set GITHUB_TOKEN.")
-    {"post": post, "verify": verify, "cleanup": cleanup}[mode]()
+    try:
+        {"post": post, "verify": verify, "cleanup": cleanup}[mode]()
+    except Exception as e:
+        detail = e.read().decode(errors="replace")[:500] if hasattr(e, "read") else ""
+        msg = f"{type(e).__name__}: {e} {detail}".replace("\n", " ")[:900]
+        print(f"::error title={mode} failed::{msg}")
+        raise
