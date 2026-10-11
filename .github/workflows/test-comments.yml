@@ -1,0 +1,56 @@
+name: Test comment threads
+
+# Runs when .github/test-comments.txt changes (first word: post, verify or cleanup),
+# or manually from the Actions tab.
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "post (then verify), verify, or cleanup"
+        default: post
+        type: choice
+        options: [post, verify, cleanup]
+  push:
+    branches: [main]
+    paths: [.github/test-comments.txt]
+
+permissions:
+  contents: read
+  discussions: write
+
+concurrency:
+  group: test-comments
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Pick mode
+        id: m
+        run: |
+          mode="${{ inputs.mode }}"
+          [ -z "$mode" ] && mode=$(awk 'NR==1{print $1}' .github/test-comments.txt)
+          echo "mode=$mode" >> "$GITHUB_OUTPUT"
+      - name: Post test comments
+        if: steps.m.outputs.mode == 'post'
+        run: python tools/test_comments.py post
+      - name: Verify giscus finds every thread
+        if: steps.m.outputs.mode == 'post' || steps.m.outputs.mode == 'verify'
+        run: |
+          sleep 30
+          python tools/test_comments.py verify | tee test-comments-report.txt
+      - name: Remove test comments
+        if: steps.m.outputs.mode == 'cleanup'
+        run: python tools/test_comments.py cleanup | tee test-comments-report.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-comments-report
+          path: test-comments-report.txt
+          if-no-files-found: ignore
