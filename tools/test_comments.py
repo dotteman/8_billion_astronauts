@@ -72,7 +72,9 @@ def all_discussions():
 def ids():
     q = "query($o:String!,$n:String!){repository(owner:$o,name:$n){id discussionCategories(first:50){nodes{id name}}}}"
     r = gql(q, o=OWNER, n=NAME)["repository"]
-    return r["id"], {c["name"]: c["id"] for c in r["discussionCategories"]["nodes"]}
+    names = [c["name"] for c in r["discussionCategories"]["nodes"]]
+    print(f"::notice title=categories::{names}")
+    return r["id"], {c["name"].strip().lower(): c["id"] for c in r["discussionCategories"]["nodes"]}
 
 
 def post():
@@ -80,17 +82,17 @@ def post():
     by_hash = {}
     for d in all_discussions():
         for h in [line.split("sha1:")[1].split("-->")[0].strip() for line in d["body"].splitlines() if "sha1:" in line]:
-            by_hash[(h, d["category"]["name"])] = d
+            by_hash[(h, d["category"]["name"].strip().lower())] = d
     stamp = time.strftime("%Y-%m-%d %H:%M UTC", time.gmtime())
     made = commented = 0
     for section, url, kind, cat, term, h in threads():
-        d = by_hash.get((h, cat))
+        d = by_hash.get((h, cat.strip().lower()))
         if not d:
             # Same title and body shape giscus uses when a reader starts a thread.
             body = f"# {term}\n\n{url}\n\n<!-- sha1: {h} -->"
             d = gql("""mutation($r:ID!,$c:ID!,$t:String!,$b:String!){createDiscussion(input:{
                 repositoryId:$r,categoryId:$c,title:$t,body:$b}){discussion{id url}}}""",
-                    r=repo_id, c=cats[cat], t=term, b=body)["createDiscussion"]["discussion"]
+                    r=repo_id, c=cats[cat.strip().lower()], t=term, b=body)["createDiscussion"]["discussion"]
             made += 1
         gql("mutation($d:ID!,$b:String!){addDiscussionComment(input:{discussionId:$d,body:$b}){comment{id}}}",
             d=d["id"], b=f"Test comment ({kind}) for **{section}**, posted {stamp} to check that this thread works. "
