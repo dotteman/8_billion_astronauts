@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Read the book
+    url: https://dotteman.github.io/8_billion_astronauts/
+    about: The reading site, with comment threads at the end of every chapter.

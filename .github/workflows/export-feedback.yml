@@ -1,0 +1,27 @@
+name: Export reader feedback
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  discussions: read
+  issues: read
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Collect comments, issues and passage notes
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          HYPOTHESIS_TOKEN: ${{ secrets.HYPOTHESIS_TOKEN }}
+        run: python tools/export_feedback.py > reader-feedback.md
+      - uses: actions/upload-artifact@v4
+        with:
+          name: reader-feedback
+          path: reader-feedback.md

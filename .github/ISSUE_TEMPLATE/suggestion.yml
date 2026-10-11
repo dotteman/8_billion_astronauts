@@ -1,0 +1,40 @@
+name: Suggest an improvement
+description: Point out something that confused you, dragged, didn't ring true, or could be better.
+title: "Suggestion: "
+labels: ["suggestion"]
+body:
+  - type: markdown
+    attributes:
+      value: Specific notes help most. Say what you noticed and, if you have one, what you'd try instead.
+  - type: input
+    id: section
+    attributes:
+      label: Chapter or section
+      description: For example "Chapter Seven · The Missing Shipment", or "the whole book".
+      placeholder: Chapter Seven · The Missing Shipment
+    validations:
+      required: true
+  - type: textarea
+    id: passage
+    attributes:
+      label: Passage (optional)
+      description: Paste the lines you mean, if it's about a specific spot.
+      render: text
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Kind of note
+      options:
+        - Story or pacing
+        - Character
+        - Science or plausibility
+        - Humor or tone
+        - Clarity or wording
+        - Typo or continuity error
+        - Something else
+  - type: textarea
+    id: comment
+    attributes:
+      label: What could be better
+    validations:
+      required: true

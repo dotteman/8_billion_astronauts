@@ -1,0 +1,17 @@
+{
+  "title": "8 Billion Astronauts",
+  "author": "Dave L. Otteman",
+  "edition": "Revised 4 · October 2026",
+  "manuscript": "manuscript/8-billion-astronauts.docx",
+  "pdf": "manuscript/8-billion-astronauts.pdf",
+  "repo": "dotteman/8_billion_astronauts",
+  "base_path": "/8_billion_astronauts/",
+  "giscus": {
+    "repo_id": "R_kgDOVESYNA",
+    "praise_category": "Praise",
+    "praise_category_id": "",
+    "suggestions_category": "Suggestions",
+    "suggestions_category_id": ""
+  },
+  "hypothesis": true
+}

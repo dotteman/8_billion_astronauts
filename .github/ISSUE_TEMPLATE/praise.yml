@@ -1,0 +1,28 @@
+name: Praise
+description: Tell the author about something in the book that worked for you.
+title: "Praise: "
+labels: ["praise"]
+body:
+  - type: markdown
+    attributes:
+      value: Thanks for reading. What landed for you? A scene, a line, a character, a bit of science?
+  - type: input
+    id: section
+    attributes:
+      label: Chapter or section
+      description: For example "Chapter Seven · The Missing Shipment", or "the whole book".
+      placeholder: Chapter Seven · The Missing Shipment
+    validations:
+      required: true
+  - type: textarea
+    id: passage
+    attributes:
+      label: Passage (optional)
+      description: Paste the lines you mean, if it's about a specific spot.
+      render: text
+  - type: textarea
+    id: comment
+    attributes:
+      label: What worked
+    validations:
+      required: true
