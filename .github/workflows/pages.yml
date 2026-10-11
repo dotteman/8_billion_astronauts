@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: read
+  discussions: read
   pages: write
   id-token: write
 
@@ -23,6 +24,8 @@ jobs:
         with:
           python-version: "3.12"
       - name: Build site from the manuscript
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: python tools/build.py _site
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3

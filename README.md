@@ -41,7 +41,7 @@ Preview locally: `python3 tools/build.py && python3 -m http.server -d _site`
 2. **Discussions:** Settings → General → Features → check **Discussions**.
 3. **Discussion categories:** in the Discussions tab, create two categories named **Praise** and **Suggestions**, both with the **Announcement** format, so only giscus and maintainers can start threads.
 4. **giscus app:** install https://github.com/apps/giscus on this repository only.
-5. **Category IDs:** open https://giscus.app, enter `dotteman/8_billion_astronauts`, pick each category, and copy its `data-category-id` into `praise_category_id` and `suggestions_category_id` in `site.config.json`. Push. Until then, chapter pages show the issue-form links instead of threads.
+5. **Category IDs:** nothing to do. The publish workflow looks up the **Praise** and **Suggestions** category IDs by name on every build. To pin them instead, put the IDs from https://giscus.app into `praise_category_id` and `suggestions_category_id` in `site.config.json`. If the lookup finds no categories, chapter pages show the issue-form links instead of threads.
 6. **Labels:** create labels `praise` and `suggestion` so issue forms are tagged.
 7. **Optional, private passage notes:** Hypothesis notes are public by default. To keep them private, create a Hypothesis group, share its invite link with readers, and add a Hypothesis API token as the `HYPOTHESIS_TOKEN` repository secret so the export can read the group.
 

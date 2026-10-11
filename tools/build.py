@@ -20,6 +20,38 @@ OUT = Path(sys.argv[1]) if len(sys.argv) > 1 else ROOT / "_site"
 CFG = json.loads((ROOT / "site.config.json").read_text(encoding="utf-8"))
 
 
+def resolve_category_ids(cfg):
+    """Fill missing giscus category IDs by looking the categories up by name.
+
+    Runs in GitHub Actions, where GITHUB_TOKEN is set. IDs already in
+    site.config.json win. Without a token or on any error, the site falls back
+    to the issue-form links.
+    """
+    import os
+    import urllib.request
+    g = cfg.get("giscus", {})
+    token = os.environ.get("GITHUB_TOKEN")
+    if not token or (g.get("praise_category_id") and g.get("suggestions_category_id")):
+        return
+    owner, name = cfg["repo"].split("/")
+    q = {"query": "query($o:String!,$n:String!){repository(owner:$o,name:$n){discussionCategories(first:50){nodes{id name}}}}",
+         "variables": {"o": owner, "n": name}}
+    req = urllib.request.Request("https://api.github.com/graphql", data=json.dumps(q).encode(),
+                                 headers={"Authorization": f"bearer {token}", "Content-Type": "application/json"})
+    try:
+        with urllib.request.urlopen(req, timeout=30) as r:
+            nodes = json.loads(r.read())["data"]["repository"]["discussionCategories"]["nodes"]
+    except Exception as e:
+        print(f"giscus: category lookup failed ({e}); using issue-form links", file=sys.stderr)
+        return
+    ids = {n["name"].strip().lower(): n["id"] for n in nodes}
+    for key in ("praise", "suggestions"):
+        if not g.get(f"{key}_category_id"):
+            g[f"{key}_category_id"] = ids.get(g[f"{key}_category"].strip().lower(), "")
+    print(f"giscus: categories found {sorted(ids)}; praise={bool(g['praise_category_id'])} "
+          f"suggestions={bool(g['suggestions_category_id'])}", file=sys.stderr)
+
+
 # ---------------------------------------------------------------- parse DOCX
 def load_paragraphs(docx_path):
     with zipfile.ZipFile(docx_path) as z:
@@ -178,6 +210,7 @@ def page(title, body, cfg, depth, extra_head="", hypothesis=False):
 
 
 def build():
+    resolve_category_ids(CFG)
     sections = parse(ROOT / CFG["manuscript"])
     if OUT.exists():
         shutil.rmtree(OUT)
