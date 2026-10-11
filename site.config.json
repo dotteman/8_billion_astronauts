@@ -8,9 +8,9 @@
   "base_path": "/8_billion_astronauts/",
   "giscus": {
     "repo_id": "R_kgDOVESYNA",
-    "praise_category": "Praise",
+    "praise_category": "praise",
     "praise_category_id": "",
-    "suggestions_category": "Suggestions",
+    "suggestions_category": "suggestions",
     "suggestions_category_id": ""
   },
   "hypothesis": true

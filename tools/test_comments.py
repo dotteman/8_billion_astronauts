@@ -30,6 +30,22 @@ TOKEN = os.environ.get("GITHUB_TOKEN", "")
 
 
 def gql(query, **variables):
+    for wait in (0, 30, 60, 120, 180, 300):
+        if wait:
+            print(f"  rate limited; waiting {wait}s", flush=True)
+            time.sleep(wait)
+        try:
+            return _gql(query, **variables)
+        except RuntimeError as e:
+            if "too quickly" not in str(e) and "RATE_LIMITED" not in str(e):
+                raise
+        except urllib.error.HTTPError as e:
+            if e.code not in (403, 429):
+                raise
+    return _gql(query, **variables)
+
+
+def _gql(query, **variables):
     body = json.dumps({"query": query, "variables": variables}).encode()
     req = urllib.request.Request("https://api.github.com/graphql", data=body, headers={
         "Authorization": f"bearer {TOKEN}", "Content-Type": "application/json"})
@@ -87,6 +103,9 @@ def post():
     made = commented = 0
     for section, url, kind, cat, term, h in threads():
         d = by_hash.get((h, cat.strip().lower()))
+        if d and any(MARK in c["body"] for c in d["comments"]["nodes"]):
+            print(f"skip    {term} (already has a test comment)")
+            continue
         if not d:
             # Same title and body shape giscus uses when a reader starts a thread.
             body = f"# {term}\n\n{url}\n\n<!-- sha1: {h} -->"
@@ -98,8 +117,8 @@ def post():
             d=d["id"], b=f"Test comment ({kind}) for **{section}**, posted {stamp} to check that this thread works. "
                          f"It will be removed.\n\n{MARK}")
         commented += 1
-        print(f"posted  {term}")
-        time.sleep(1)  # stay well under GitHub's content-creation rate limit
+        print(f"posted  {term}", flush=True)
+        time.sleep(5)  # stay well under GitHub's content-creation rate limit
     print(f"\n{commented} test comments posted, {made} new threads created.")
     print(f"::notice title=post::{commented} test comments posted, {made} new threads created")
 
